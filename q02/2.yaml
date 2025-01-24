@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  labels:
+    app: db-service
+spec:
+  ports:
+  - port: 8080
+    name: db-service
+  clusterIP: None
+  selector:
+    app: db-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-cluster
+spec:
+  selector:
+    matchLabels:
+      app: db-cluster # has to match .spec.template.metadata.labels
+  serviceName: "db-service"
+  replicas: 3 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: db-cluster # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: db-cluster
+        image: mysql:8
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "password"
+        ports:
+        - containerPort: 8080
+          name: db-cluster
+        volumeMounts:
+        - name: db-storage
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: db-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 5Gi

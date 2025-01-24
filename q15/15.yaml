@@ -1,0 +1,50 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-storage
+provisioner: kubernetes.io/no-provisioner 
+reclaimPolicy: Retain  
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: fast-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce  
+  storageClassName: fast-storage
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fast-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-storage
+  ---
+  apiVersion: v1
+kind: Pod
+metadata:
+  name: storage-test
+spec:
+  containers:
+  - name: nginx
+    image: nginx:latest
+    volumeMounts:
+    - mountPath: /usr/share/nginx/html
+      name: fast-storage-volume
+  volumes:
+  - name: fast-storage-volume
+    persistentVolumeClaim:
+      claimName: fast-pvc
+
+

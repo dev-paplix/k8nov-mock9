@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-cluster
+  labels:
+    app: mysql
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      volumes:
+       - name: vol
+         hostPath:
+          path: /any/path/it/will/be/replaced
+      containers:
+      - name: mysql
+        image: mysql:8
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: vol
+          mountPath: /scrub
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 80

@@ -1,0 +1,32 @@
+apiVersion: v1
+data:
+  password: U2VjdXJlUEBzczEyMw==
+  username: ZGJfdXNlcg==
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: db-secret
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    app: db-client
+  name: db-client
+spec:
+  containers:
+    - image: mysql:8
+      name: db-client
+      resources: {}
+      env:
+        - name: password
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        - name: username
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: username

@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  labels:
+    app: db
+spec:
+  ports:
+  - port: 3306
+    name: db
+  selector:
+    app: db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-cluster
+spec:
+  selector:
+    matchLabels:
+      app: db
+  serviceName: "db-service"
+  replicas: 3 # by default is 1
+  minReadySeconds: 10 # by default is 0
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: db
+        image: mysql:8
+        ports:
+        - containerPort: 3306
+          name: db
+        volumeMounts:
+        - name: db
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: db
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "local-path"
+      resources:
+        requests:
+          storage: 5Gi

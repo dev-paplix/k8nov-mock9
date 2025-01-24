@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-monitor         
+  labels:
+    app: node-monitor   
+spec:
+  selector:
+    matchLabels:
+      app: node-monitor      
+  template:
+    metadata:
+      labels:
+        app: node-monitor         
+    spec:
+      containers:
+      - name: busybox              
+        image: busybox                                     
+        command: ["sh", "-c", "echo Hello;sleep 5;"]
+      terminationGracePeriodSeconds: 30

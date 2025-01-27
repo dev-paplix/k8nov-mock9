@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: database
+spec:
+  ports:
+    - name: mysql
+      port: 3306
+  clusterIP: None
+  selector:
+    app: db-cluster
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db-cluster
+  namespace: database
+spec:
+  selector:
+    matchLabels:
+      app: db-cluster
+  serviceName: "db-service"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: db-cluster
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: db-storage
+          mountPath: /var/lib/mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+  volumeClaimTemplates:
+  - metadata:
+      name: db-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi

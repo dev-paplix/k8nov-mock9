@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: db-cluster
+  name: db-cluster
+  namespace: database
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: db-cluster
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: db-cluster
+    spec:
+      containers:
+        - image: mysql:8
+          name: mysql
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/data
+              name: site-data
+      volumes:
+        - name: site-data
+          persistentVolumeClaim:
+            claimName: db-storage
+status: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+  namespace: database
+spec:
+  selector:
+    app: db-cluster
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-storage
+  namespace: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path

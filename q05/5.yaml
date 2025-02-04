@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+stringData:
+  username: db-user
+  password: SecureP@ss123
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: db-client
+spec:
+  containers:
+  - name: db
+    image: mysql:8
+    env:
+      - name: username 
+        valueFrom:
+          secretKeyRef:
+             name: db-secret
+             key: username
+      - name: password
+        valueFrom:
+          secretKeyRef:
+            name: db-secret
+            key: password
+    ports:
+    - containerPort: 80
